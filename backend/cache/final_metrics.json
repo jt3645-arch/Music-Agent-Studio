@@ -1,0 +1,17 @@
+{
+  "rf_test_acc": 0.685,
+  "ast_test_segment_acc": 0.891,
+  "ast_test_clip_acc": 0.915,
+  "label_names": [
+    "blues",
+    "classical",
+    "country",
+    "disco",
+    "hip-hop",
+    "jazz",
+    "metal",
+    "pop",
+    "reggae",
+    "rock"
+  ]
+}

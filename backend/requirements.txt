@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+pandas
+numpy
+librosa
+soundfile
+scikit-learn
+matplotlib
+torch
+transformers
+accelerate
+openai
+python-multipart
+pillow
