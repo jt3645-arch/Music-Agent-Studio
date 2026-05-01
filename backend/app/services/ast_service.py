@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from app.config import AST_CHECKPOINT, FINAL_METRICS
+from app.services.audio_decode_service import prepare_audio_for_analysis
 from app.services.feature_service import extract_full_clip_features, load_feature_df
 
 AST_MODEL_NAME = "MIT/ast-finetuned-audioset-10-10-0.4593"
@@ -183,8 +184,10 @@ def analyze_audio(audio_path: str):
     if not path.exists():
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
-    prediction = predict_clip_with_ast(str(path))
-    features = extract_full_clip_features(str(path))
+    with prepare_audio_for_analysis(str(path)) as prepared_audio:
+        prediction = predict_clip_with_ast(prepared_audio.path)
+        features = extract_full_clip_features(prepared_audio.path)
+
     top3 = prediction["top3"]
     recommendation = template_dj_recommendation(
         prediction["pred_genre"],
@@ -199,3 +202,4 @@ def analyze_audio(audio_path: str):
         "features": features,
         "recommendation": recommendation,
     }
+

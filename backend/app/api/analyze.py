@@ -78,12 +78,15 @@ def _similar_song_query(analysis):
 
 @router.post("")
 async def analyze_endpoint(file: UploadFile = File(...)):
+    tmp_path = None
+
     try:
-        suffix = Path(file.filename).suffix or ".wav"
+        suffix = Path(file.filename or "").suffix or ".audio"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             content = await file.read()
             tmp.write(content)
             tmp_path = tmp.name
+
         analysis = analyze_audio(tmp_path)
         genre = analysis.get("predicted_genre")
         evidence = {
@@ -107,3 +110,7 @@ async def analyze_endpoint(file: UploadFile = File(...)):
             status_code=500,
             content={"status": "error", "error": "Audio analysis failed."},
         )
+    finally:
+        if tmp_path:
+            Path(tmp_path).unlink(missing_ok=True)
+

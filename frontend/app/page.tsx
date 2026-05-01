@@ -1727,15 +1727,20 @@ export default function HomePage() {
             >
               <label>
                 Upload audio
-                <input
-                  className="file-input"
-                  type="file"
-                  accept="audio/*,.wav,.mp3,.flac,.m4a"
-                  disabled={analysisState === "loading"}
-                  onChange={(event) =>
-                    setAudioFile(event.currentTarget.files?.[0] ?? null)
-                  }
-                />
+                <span className="file-drop">
+                  <span className="file-drop-button">Choose Audio</span>
+                  <span className="file-drop-copy">
+                    MP3, WAV, FLAC, M4A, AAC, OGG, WebM, AIFF, WMA, and more
+                  </span>
+                  <input
+                    type="file"
+                    accept="audio/*,.wav,.wave,.mp3,.flac,.m4a,.aac,.ogg,.oga,.opus,.webm,.wma,.aiff,.aif,.alac,.amr"
+                    disabled={analysisState === "loading"}
+                    onChange={(event) =>
+                      setAudioFile(event.currentTarget.files?.[0] ?? null)
+                    }
+                  />
+                </span>
               </label>
 
               {audioFile ? (
@@ -2084,3 +2089,4 @@ export default function HomePage() {
     </main>
   );
 }
+
