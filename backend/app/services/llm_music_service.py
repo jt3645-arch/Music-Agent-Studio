@@ -1,6 +1,6 @@
 import re
 from typing import Any, Dict, List, Optional
-from urllib.parse import quote, quote_plus
+from urllib.parse import quote
 
 from app.services.llm_client import complete_json, get_provider_config
 
@@ -198,6 +198,18 @@ def _song_query(title: Any, artist: Any) -> str:
     return " ".join(part for part in [title_text, artist_text] if part).strip()
 
 
+def _netease_title_query(title: Any) -> str:
+    text = str(title or "").strip()
+    cleaned = re.sub(
+        r"\s*\((?=[^)]*(cover|remix|version|edit|live|acoustic|feat\.?|ft\.?|with|by))[^)]*\)",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned or text
+
+
 def _safe_url(value: Any) -> Optional[str]:
     if not isinstance(value, str):
         return None
@@ -215,10 +227,11 @@ def spotify_search_url(title: Any, artist: Any) -> Optional[str]:
 
 
 def netease_search_url(title: Any, artist: Any) -> Optional[str]:
-    query = _song_query(title, artist)
+    query = _netease_title_query(title)
     if not query:
         return None
-    return f"https://music.163.com/#/search/m/?s={quote_plus(query)}&type=1"
+    encoded_query = quote(query, safe="")
+    return f"https://music.163.com/#/search/m/?s={encoded_query}&type=1"
 
 
 def normalize_song_links(song: Song) -> Song:
@@ -228,9 +241,11 @@ def normalize_song_links(song: Song) -> Song:
     normalized["spotify_url"] = (
         _safe_url(song.get("spotify_url")) or spotify_search_url(title, artist)
     )
-    normalized["netease_url"] = (
-        _safe_url(song.get("netease_url")) or netease_search_url(title, artist)
-    )
+    netease_url = _safe_url(song.get("netease_url"))
+    if netease_url and "/search" not in netease_url.lower():
+        normalized["netease_url"] = netease_url
+    else:
+        normalized["netease_url"] = netease_search_url(title, artist)
     return normalized
 
 

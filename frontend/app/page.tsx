@@ -257,16 +257,32 @@ function songSearchQuery(song: AgentSong) {
   return [title, artist].filter(Boolean).join(" ");
 }
 
+function songTitleQuery(song: AgentSong) {
+  const title = song.title?.trim() ?? "";
+  const cleaned = title
+    .replace(
+      /\s*\((?=[^)]*(cover|remix|version|edit|live|acoustic|feat\.?|ft\.?|with|by))[^)]*\)/gi,
+      "",
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || title;
+}
+
 function spotifyFallbackUrl(song: AgentSong) {
   const query = songSearchQuery(song);
   return query ? `https://open.spotify.com/search/${encodeURIComponent(query)}` : "";
 }
 
 function neteaseFallbackUrl(song: AgentSong) {
-  const query = songSearchQuery(song);
+  const query = songTitleQuery(song);
   return query
     ? `https://music.163.com/#/search/m/?s=${encodeURIComponent(query)}&type=1`
     : "";
+}
+
+function isNeteaseSearchUrl(value?: string | null) {
+  return Boolean(value && /music\.163\.com\/.*search/i.test(value));
 }
 
 function songPlatformLinks(song: AgentSong) {
@@ -279,12 +295,140 @@ function songPlatformLinks(song: AgentSong) {
 
   return {
     spotify: song.spotify_url || spotifyFallbackUrl(song),
-    netease: song.netease_url || neteaseFallbackUrl(song),
+    netease:
+      song.netease_url && !isNeteaseSearchUrl(song.netease_url)
+        ? song.netease_url
+        : neteaseFallbackUrl(song),
   };
 }
 
 function displayTrackName(track: PlaylistTrack | RetrievalTrack) {
   return track.clip_id || "Untitled cue";
+}
+
+const COLOR_KEYWORDS: Array<[string, string]> = [
+  ["cherry", "#ff9fbd"],
+  ["blossom", "#ffc2d6"],
+  ["pink", "#f7a6c7"],
+  ["rose", "#ff8fa3"],
+  ["red", "#c95f55"],
+  ["brick", "#b85c4a"],
+  ["orange", "#f29b55"],
+  ["amber", "#f2bd69"],
+  ["gold", "#e6bd5e"],
+  ["yellow", "#f2d36b"],
+  ["spring", "#a7e978"],
+  ["botanical", "#7bd88f"],
+  ["nature", "#78c87d"],
+  ["green", "#74c77a"],
+  ["mint", "#8ce8c8"],
+  ["teal", "#63e0d5"],
+  ["cyan", "#74d4f5"],
+  ["sky", "#8dc8ff"],
+  ["blue", "#7bb7ff"],
+  ["navy", "#253a66"],
+  ["violet", "#bda3ff"],
+  ["purple", "#9f8cff"],
+  ["pastel", "#d8c9ff"],
+  ["cream", "#f3e5c6"],
+  ["ivory", "#f5f0dc"],
+  ["white", "#f5f3ea"],
+  ["stone", "#a9aaa1"],
+  ["gray", "#9da4a5"],
+  ["grey", "#9da4a5"],
+  ["black", "#202426"],
+  ["night", "#222a34"],
+  ["brown", "#9a6a4f"],
+  ["wood", "#b4845f"],
+  ["warm", "#f0b36a"],
+  ["bright", "#a6e8ff"],
+  ["cinematic", "#8f99ad"],
+  ["urban", "#8c9697"],
+  ["architectural", "#b9b6aa"],
+];
+
+const PALETTE_FALLBACK_COLORS = [
+  "#63e0d5",
+  "#a7e978",
+  "#f2bd69",
+  "#ff9fbd",
+  "#bda3ff",
+  "#8dc8ff",
+];
+
+function isCssColorValue(value: string) {
+  return (
+    /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(value) ||
+    /^rgba?\(/i.test(value) ||
+    /^hsla?\(/i.test(value)
+  );
+}
+
+function resolvePaletteColor(value: unknown, index: number) {
+  if (typeof value !== "string") {
+    return PALETTE_FALLBACK_COLORS[index % PALETTE_FALLBACK_COLORS.length];
+  }
+
+  const text = value.trim();
+  if (isCssColorValue(text)) {
+    return text;
+  }
+
+  const normalized = text.toLowerCase();
+  const match = COLOR_KEYWORDS.find(([keyword]) => normalized.includes(keyword));
+  return match?.[1] ?? PALETTE_FALLBACK_COLORS[index % PALETTE_FALLBACK_COLORS.length];
+}
+
+function hexToRgb(value: string) {
+  const hex = value.replace("#", "").trim();
+  if (![3, 6, 8].includes(hex.length)) {
+    return null;
+  }
+
+  const expanded =
+    hex.length === 3
+      ? hex
+          .split("")
+          .map((part) => `${part}${part}`)
+          .join("")
+      : hex;
+  const parsed = Number.parseInt(expanded, 16);
+  if (Number.isNaN(parsed)) {
+    return null;
+  }
+
+  return {
+    r: (parsed >> 16) & 255,
+    g: (parsed >> 8) & 255,
+    b: parsed & 255,
+  };
+}
+
+function paletteTextColor(background: string) {
+  const rgb = hexToRgb(background);
+  if (!rgb) {
+    return "#07100f";
+  }
+
+  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+  return luminance > 0.58 ? "#07100f" : "#f7f8f4";
+}
+
+function paletteBackground(background: string) {
+  if (/^#([0-9a-f]{6})$/i.test(background)) {
+    return `linear-gradient(135deg, ${background}, ${background}cc)`;
+  }
+
+  return background;
+}
+
+function paletteLabel(value: unknown) {
+  if (typeof value !== "string") {
+    return "Color";
+  }
+
+  const text = value.trim();
+  return isCssColorValue(text) ? "" : text;
 }
 
 function getNumber(value: unknown) {
@@ -669,14 +813,22 @@ function VisualMoodCard({ profile }: { profile: VisualProfile }) {
       ) : null}
       {palette.length ? (
         <div className="palette-row" aria-label="Color palette">
-          {palette.map((color, index) => (
-            <span
-              key={`${color}-${index}`}
-              style={{ background: color.startsWith("#") ? color : undefined }}
-            >
-              {color.startsWith("#") ? "" : color}
-            </span>
-          ))}
+          {palette.map((color, index) => {
+            const swatchColor = resolvePaletteColor(color, index);
+            const label = paletteLabel(color);
+            return (
+              <span
+                key={`${String(color)}-${index}`}
+                title={String(color)}
+                style={{
+                  background: paletteBackground(swatchColor),
+                  color: paletteTextColor(swatchColor),
+                }}
+              >
+                {label}
+              </span>
+            );
+          })}
         </div>
       ) : null}
       {tags.length ? (
