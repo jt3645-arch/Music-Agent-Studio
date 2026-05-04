@@ -43,6 +43,19 @@ node --version
 npm --version
 ```
 
+## Clone From GitHub
+
+If you are cloning the submitted repository on a new computer, use:
+
+```powershell
+git clone https://github.com/jt3645-arch/Music-Agent-Studio.git
+cd Music-Agent-Studio
+git lfs install
+git lfs pull
+```
+
+`git lfs pull` downloads the local audio perception checkpoint stored under `backend/cache/`. Run it before the first setup so audio analysis can load the checkpoint correctly.
+
 ## First-Time Setup
 
 From the project root, double-click:
