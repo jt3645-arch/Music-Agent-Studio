@@ -45,16 +45,18 @@ npm --version
 
 ## Clone From GitHub
 
+Important: this project uses Git LFS for the local audio perception checkpoint. Do not use GitHub's Download ZIP option for reproduction, because the ZIP package may contain only a small LFS pointer file instead of the real model checkpoint. Use `git clone` and `git lfs pull` instead.
+
 If you are cloning the submitted repository on a new computer, use:
 
 ```powershell
-git clone https://github.com/jt3645-arch/Music-Agent-Studio.git
-cd Music-Agent-Studio
 git lfs install
+git clone https://github.com/Sapphirine/2026_Perception_1.git
+cd 2026_Perception_1
 git lfs pull
 ```
 
-`git lfs pull` downloads the local audio perception checkpoint stored under `backend/cache/`. Run it before the first setup so audio analysis can load the checkpoint correctly.
+`git lfs pull` downloads the local audio perception checkpoint stored under `backend/cache/`. Run it before the first setup so audio analysis can load the checkpoint correctly. The checkpoint file `backend/cache/best_ast_gtzan.pt` should be about 345 MB after Git LFS finishes. If it is only a few hundred bytes, Git LFS did not download the real file.
 
 ## First-Time Setup
 
