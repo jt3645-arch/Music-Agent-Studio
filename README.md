@@ -116,6 +116,16 @@ Then open:
 http://127.0.0.1:3000
 ```
 
+## Example Usage
+
+After opening the app, try these workflows:
+
+1. Open Agent Studio and enter `Make me a 40-minute workout playlist` to generate a staged playlist with real songs.
+2. Upload a photo in Agent Studio and enter `Recommend BGM for this photo` to get visual mood-based background music suggestions.
+3. Open Analyze Audio, upload a local audio file, and review the predicted genre, top-3 probabilities, tempo, energy, brightness, and texture.
+4. Open Discover Music and enter `Relaxing jazz for reading` to receive real song recommendations with Spotify and NetEase search links.
+5. Open Playlist Planner and enter `60-minute late-night study playlist` to create a time-segmented listening journey.
+
 ## Optional Configuration
 
 The backend environment file is:
