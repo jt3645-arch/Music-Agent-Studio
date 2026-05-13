@@ -51,8 +51,8 @@ If you are cloning the submitted repository on a new computer, use:
 
 ```powershell
 git lfs install
-git clone https://github.com/Sapphirine/2026_Perception_1.git
-cd 2026_Perception_1
+git clone https://github.com/jt3645-arch/Music-Agent-Studio.git
+cd Music-Agent-Studio
 git lfs pull
 ```
 
